@@ -76,18 +76,28 @@ def main():
     parser.add_argument("-f", "--file", help="binary to analyze")
     parser.add_argument(
         "--addr", help="address of target function in hex format")
+    parser.add_argument(
+        "--sym", help="symbol of target function")
     args = parser.parse_args()
 
-    if args.file is None or args.addr is None:
+    if args.file is None or (args.addr is None and args.sym is None):
         parser.print_help()
         sys.exit(0)
 
     filename = args.file
-    start = int(args.addr, 16)
 
     project = angr.Project(filename, load_options={'auto_load_libs': False})
     # do normalize to avoid overlapping blocks, disable force_complete_scan to avoid possible "wrong" blocks
     cfg = project.analyses.CFGFast(normalize=True, force_complete_scan=False)
+
+    if args.addr:
+        start = int(args.addr, 16)
+    elif args.sym:
+        start = project.loader.main_object.get_symbol(args.sym).rebased_addr
+        print("Got %s at %x" % (args.sym, start))
+    else:
+        assert False
+
     target_function = cfg.functions.get(start)
     # A super transition graph is a graph that looks like IDA Pro's CFG
     supergraph = am_graph.to_supergraph(target_function.transition_graph)
