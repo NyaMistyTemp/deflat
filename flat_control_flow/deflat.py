@@ -198,7 +198,7 @@ def main():
         origin_data = bytearray(origin.read())
         origin_data_len = len(origin_data)
 
-    recovery_file = filename + '_recovered'
+    recovery_file = filename + '_deflat'
     recovery = open(recovery_file, 'wb')
 
     # patch irrelevant blocks
